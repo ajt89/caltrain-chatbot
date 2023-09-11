@@ -4,3 +4,5 @@ Dockerfile
 .gitignore
 README.md
 app
+.env
+env_template.txt

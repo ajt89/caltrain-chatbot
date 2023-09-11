@@ -1,11 +1,18 @@
+include .env
+
 compile:
-	- go build -v -o app
+	- go mod tidy; \
+	go build -v -o app
+
+format:
+	- gofmt -w .
 
 run:
-	- ./app
+	- export DISCORD_TOKEN=$(DISCORD_TOKEN); \
+	./app
 
 docker-build:
 	- docker build -t caltrain-chatbot:latest .
 
 docker-run:
-	- docker run --rm caltrain-chatbot:latest
+	- docker run --rm -e DISCORD_TOKEN=$(DISCORD_TOKEN) caltrain-chatbot:latest

@@ -17,3 +17,6 @@ app
 
 # Go workspace file
 go.work
+
+# env files
+.env
