@@ -2,7 +2,8 @@ Dockerfile
 .dockerignore
 .git
 .gitignore
-README.md
 app
 .env
-env_template.txt
+*.md
+*.txt
+*.json

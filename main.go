@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -65,11 +66,44 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !isUserIdInMention(m.Mentions, s.State.User.ID) {
 		return
 	}
-	// If the message is "ping" reply with "Pong!"
-	if strings.Contains(m.Content, "headers") {
+	fmt.Println(m.Content)
+
+	// Strip username mention out of incoming command
+	username := fmt.Sprintf("<@%s> ", s.State.User.ID)
+	content_no_username := strings.TrimPrefix(m.Content, username)
+
+	// Generate list of commands and get length
+	commands := strings.Split(content_no_username, " ")
+	command_len := len(commands)
+	log.Printf("commands: %s\n", commands)
+	log.Printf("command_len: %d\n", command_len)
+
+	// If the message is "headers" reply with headers timestamp
+	if command_len == 1 && commands[0] == "headers" {
 		data := caltrain.GetRealTime()
 		message := fmt.Sprintf("Header timestamp: %d", data.RealTime.Header.Timestamp)
 		s.ChannelMessageSend(m.ChannelID, message)
 		log.Printf("Send message: %s\n", message)
+	}
+	// nta (Next to Arrive)
+	if command_len == 2 && commands[0] == "nta" {
+		origin := commands[1]
+		log.Printf("origin: %s\n", origin)
+		originInt, err := strconv.Atoi(origin)
+		if err != nil {
+			log.Printf("%s\n", err.Error())
+		}
+		data := caltrain.ParseCalTrainStop(originInt)
+		for i := 0; i < len(data.CalTrainVehicles); i++ {
+			trainId := data.CalTrainVehicles[i].TrainId
+			arrivalTime := data.CalTrainVehicles[i].ArrivalTime
+			departureTime := data.CalTrainVehicles[i].DepartureTime
+			stopsLeft := data.CalTrainVehicles[i].StopsLeft
+			currentStop := data.CalTrainVehicles[i].CurrentStop
+			tripType := data.CalTrainVehicles[i].TripType
+			message := fmt.Sprintf("train id: %s, arrival: %d, departure: %d, stops left: %d, current stop: %d, train type: %s", trainId, arrivalTime, departureTime, stopsLeft, currentStop, tripType)
+			s.ChannelMessageSend(m.ChannelID, message)
+			log.Printf("Send message: %s\n", message)
+		}
 	}
 }
