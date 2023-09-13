@@ -94,14 +94,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Printf("%s\n", err.Error())
 		}
 		data := caltrain.ParseCalTrainStop(originInt)
-		for i := 0; i < len(data.CalTrainVehicles); i++ {
-			trainId := data.CalTrainVehicles[i].TrainId
-			arrivalTime := data.CalTrainVehicles[i].ArrivalTime
-			departureTime := data.CalTrainVehicles[i].DepartureTime
-			stopsLeft := data.CalTrainVehicles[i].StopsLeft
-			currentStop := data.CalTrainVehicles[i].CurrentStop
-			tripType := data.CalTrainVehicles[i].TripType
-			message := fmt.Sprintf("train id: %s, arrival: %d, departure: %d, stops left: %d, current stop: %d, train type: %s", trainId, arrivalTime, departureTime, stopsLeft, currentStop, tripType)
+		message := fmt.Sprintf("%d trains found", len(data.CalTrainVehicles))
+		s.ChannelMessageSend(m.ChannelID, message)
+		for _, t := range data.CalTrainVehicles {
+			message := fmt.Sprintf(
+				"train id: %s, arrival: %d, departure: %d, stops left: %d, current stop: %d, train type: %s",
+				t.Id, t.ArrivalTime, t.DepartureTime, t.StopsLeft, t.CurrentStop, t.TripType)
 			s.ChannelMessageSend(m.ChannelID, message)
 			log.Printf("Send message: %s\n", message)
 		}

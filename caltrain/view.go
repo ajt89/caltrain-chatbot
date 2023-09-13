@@ -38,22 +38,19 @@ func GetRealTime() RealTimeStatus {
 
 func ParseRealTime() CalTrainTripStatus {
 	status := CalTrainTripStatus{}
-	real_time_status := GetRealTime()
-	if real_time_status.Status == 1 {
-		status.ErrorMsg = real_time_status.ErrorMsg
-		status.Status = real_time_status.Status
+	realTimeStatus := GetRealTime()
+	if realTimeStatus.Status == 1 {
+		status.ErrorMsg = realTimeStatus.ErrorMsg
+		status.Status = realTimeStatus.Status
 		return status
 	}
-	entityCount := len(real_time_status.RealTime.Entities)
-	var calTrainTrips []CalTrainTrip
-	for i := 0; i < entityCount; i++ {
-		entity := real_time_status.RealTime.Entities[i]
-		calTrainTrip := CalTrainTrip{Id: entity.Id, RouteId: entity.TripUpdate.Trip.RouteId, DirectionId: entity.TripUpdate.Trip.DirectionId}
-		stopCount := len(entity.TripUpdate.StopTimeUpdate)
+
+	var trips []CalTrainTrip
+	for _, entity := range realTimeStatus.RealTime.Entities {
+		trip := CalTrainTrip{Id: entity.Id, RouteId: entity.TripUpdate.Trip.RouteId, DirectionId: entity.TripUpdate.Trip.DirectionId}
 		var stops []Stop
-		for j := 0; j < stopCount; j++ {
-			stopTimeUpdate := entity.TripUpdate.StopTimeUpdate[j]
-			stopIdInt, err := strconv.Atoi(stopTimeUpdate.StopId)
+		for _, stopTimeUpdate := range entity.TripUpdate.StopTimeUpdate {
+			stopIdInt, err := strconv.Atoi(stopTimeUpdate.Id)
 			if err != nil {
 				status.ErrorMsg = err.Error()
 				status.Status = 1
@@ -62,10 +59,10 @@ func ParseRealTime() CalTrainTripStatus {
 			stop := Stop{Id: stopIdInt, Arrival: stopTimeUpdate.Arrival.Time, Departure: stopTimeUpdate.Departure.Time}
 			stops = append(stops, stop)
 		}
-		calTrainTrip.Stops = stops
-		calTrainTrips = append(calTrainTrips, calTrainTrip)
+		trip.Stops = stops
+		trips = append(trips, trip)
 	}
-	status.CalTrainTrips = calTrainTrips
+	status.CalTrainTrips = trips
 	return status
 }
 
@@ -78,33 +75,31 @@ func ParseCalTrainStop(origin int) CalTrainVehicleStatus {
 		return status
 	}
 
-	var calTrainVehicles []CalTrainVehicle
-	for i := 0; i < len(calTrainTripStatus.CalTrainTrips); i++ {
-		calTrainTrip := calTrainTripStatus.CalTrainTrips[i]
+	var vehicles []CalTrainVehicle
+	for _, trip := range calTrainTripStatus.CalTrainTrips {
 		var currentStop int
-		for j := 0; j < len(calTrainTrip.Stops); j++ {
-			calTrainTripStop := calTrainTrip.Stops[j]
+		for j, stop := range trip.Stops {
 			if j == 0 {
-				currentStop = calTrainTripStop.Id
+				currentStop = stop.Id
 				continue
 			}
-			if calTrainTripStop.Id == origin {
-				calTrainVehicle := CalTrainVehicle{
-					TrainId:       calTrainTrip.Id,
-					ArrivalTime:   calTrainTripStop.Arrival,
-					DepartureTime: calTrainTripStop.Departure,
+			if stop.Id == origin {
+				vehicle := CalTrainVehicle{
+					Id:            trip.Id,
+					ArrivalTime:   stop.Arrival,
+					DepartureTime: stop.Departure,
 					StopsLeft:     j,
 					CurrentStop:   currentStop,
-					TripType:      calTrainTrip.RouteId,
-					Direction:     calTrainTrip.DirectionId,
+					TripType:      trip.RouteId,
+					Direction:     trip.DirectionId,
 				}
-				calTrainVehicles = append(calTrainVehicles, calTrainVehicle)
+				vehicles = append(vehicles, vehicle)
 				break
 			}
 		}
 	}
 
-	status.CalTrainVehicles = calTrainVehicles
+	status.CalTrainVehicles = vehicles
 
 	return status
 }
