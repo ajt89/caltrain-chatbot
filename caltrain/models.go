@@ -21,7 +21,7 @@ type CalTrainVehicleStatus struct {
 }
 
 type CalTrainVehicle struct {
-	TrainId       string
+	Id            string
 	ArrivalTime   int
 	DepartureTime int
 	StopsLeft     int
@@ -91,7 +91,7 @@ type TripUpdate struct {
 }
 
 type Trip struct {
-	TripId      string `{son:"TripId"`
+	Id          string `json:"TripId"`
 	RouteId     string `json:"RouteId"`
 	DirectionId int    `json:"DirectionId"`
 }
@@ -103,7 +103,7 @@ type Vehicle struct {
 }
 
 type StopTimeUpdate struct {
-	StopId    string `json:"StopId"`
+	Id        string `json:"StopId"`
 	Arrival   ArrivalDeparture
 	Departure ArrivalDeparture
 }
