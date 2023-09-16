@@ -25,9 +25,9 @@ type CalTrainVehicle struct {
 	ArrivalTime   int
 	DepartureTime int
 	StopsLeft     int
-	CurrentStop   int
+	CurrentStop   string
 	TripType      string
-	Direction     int
+	Direction     string
 }
 
 type CalTrainTripStatus struct {

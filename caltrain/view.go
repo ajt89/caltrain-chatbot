@@ -66,7 +66,7 @@ func ParseRealTime() CalTrainTripStatus {
 	return status
 }
 
-func ParseCalTrainStop(origin int) CalTrainVehicleStatus {
+func ParseCalTrainStop(originN int, originS int) CalTrainVehicleStatus {
 	status := CalTrainVehicleStatus{}
 	calTrainTripStatus := ParseRealTime()
 	if calTrainTripStatus.Status == 1 {
@@ -83,15 +83,20 @@ func ParseCalTrainStop(origin int) CalTrainVehicleStatus {
 				currentStop = stop.Id
 				continue
 			}
-			if stop.Id == origin {
+			if stop.Id == originN || stop.Id == originS {
+				direction := "Northbound"
+				if trip.DirectionId == 1 {
+					direction = "Southbound"
+				}
+				stopName := GetStopById(currentStop)
 				vehicle := CalTrainVehicle{
 					Id:            trip.Id,
 					ArrivalTime:   stop.Arrival,
 					DepartureTime: stop.Departure,
 					StopsLeft:     j,
-					CurrentStop:   currentStop,
+					CurrentStop:   stopName.Name,
 					TripType:      trip.RouteId,
-					Direction:     trip.DirectionId,
+					Direction:     direction,
 				}
 				vehicles = append(vehicles, vehicle)
 				break
