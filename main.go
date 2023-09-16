@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -86,22 +85,26 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Printf("Send message: %s\n", message)
 	}
 	// nta (Next to Arrive)
-	if command_len == 2 && commands[0] == "nta" {
-		origin := commands[1]
-		log.Printf("origin: %s\n", origin)
-		originInt, err := strconv.Atoi(origin)
-		if err != nil {
-			log.Printf("%s\n", err.Error())
-		}
-		data := caltrain.ParseCalTrainStop(originInt)
-		message := fmt.Sprintf("%d trains found", len(data.CalTrainVehicles))
-		s.ChannelMessageSend(m.ChannelID, message)
+	if commands[0] == "nta" {
+		stopName := strings.Join(commands[1:], " ")
+		log.Printf("stop: %s\n", stopName)
+
+		stop := caltrain.GetStopByName(stopName)
+		stopNId := stop.NorthboundId
+		stopSId := stop.SouthboundId
+
+		data := caltrain.ParseCalTrainStop(stopNId, stopSId)
+		trainCountMsg := fmt.Sprintf("%d trains found:\n", len(data.CalTrainVehicles))
+		trainInfoMsgs := []string{}
 		for _, t := range data.CalTrainVehicles {
-			message := fmt.Sprintf(
-				"train id: %s, arrival: %d, departure: %d, stops left: %d, current stop: %d, train type: %s",
-				t.Id, t.ArrivalTime, t.DepartureTime, t.StopsLeft, t.CurrentStop, t.TripType)
-			s.ChannelMessageSend(m.ChannelID, message)
-			log.Printf("Send message: %s\n", message)
+			trainInfoMsg := fmt.Sprintf(
+				"train id: %s\n arrival: %d\n departure: %d\n direction: %s\n stops left: %d\n current stop: %s\n train type: %s\n",
+				t.Id, t.ArrivalTime, t.DepartureTime, t.Direction, t.StopsLeft, t.CurrentStop, t.TripType)
+			trainInfoMsgs = append(trainInfoMsgs, trainInfoMsg)
 		}
+		trainInfoMsgsJoin := strings.Join(trainInfoMsgs, "\n")
+		message := fmt.Sprintf("%s\n%s", trainCountMsg, trainInfoMsgsJoin)
+		s.ChannelMessageSend(m.ChannelID, message)
+		log.Printf("Send message: %s\n", message)
 	}
 }
