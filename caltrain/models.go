@@ -22,8 +22,8 @@ type CalTrainVehicleStatus struct {
 
 type CalTrainVehicle struct {
 	Id            string
-	ArrivalTime   int
-	DepartureTime int
+	ArrivalTime   int64
+	DepartureTime int64
 	StopsLeft     int
 	CurrentStop   string
 	TripType      string
@@ -45,8 +45,8 @@ type CalTrainTrip struct {
 
 type Stop struct {
 	Id        int
-	Arrival   int
-	Departure int
+	Arrival   int64
+	Departure int64
 }
 
 type RequestStatus struct {
@@ -75,7 +75,7 @@ type RealTime struct {
 type Header struct {
 	GtfsRealtimeVersion string `json:"GtfsRealtimeVersion"`
 	Incrementality      int    `json:"incrementality"`
-	Timestamp           int    `json:"Timestamp"`
+	Timestamp           int64  `json:"Timestamp"`
 }
 
 type Entity struct {
@@ -87,7 +87,7 @@ type TripUpdate struct {
 	Trip           Trip
 	Vehicle        Vehicle
 	StopTimeUpdate []StopTimeUpdate
-	Timestamp      int `json:"Timestamp"`
+	Timestamp      int64 `json:"Timestamp"`
 }
 
 type Trip struct {
@@ -109,5 +109,5 @@ type StopTimeUpdate struct {
 }
 
 type ArrivalDeparture struct {
-	Time int `json:"Time"`
+	Time int64 `json:"Time"`
 }

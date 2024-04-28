@@ -2,7 +2,7 @@ package caltrain
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -23,7 +23,7 @@ func GetHandler(url string) RequestStatus {
 	}
 
 	defer response.Body.Close()
-	responseBody, responseError := ioutil.ReadAll(response.Body)
+	responseBody, responseError := io.ReadAll(response.Body)
 
 	if responseError != nil {
 		requestStatus.ErrorMsg = "Error reading response body"

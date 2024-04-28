@@ -89,13 +89,14 @@ func ParseCalTrainStop(originN int, originS int) CalTrainVehicleStatus {
 					direction = "Southbound"
 				}
 				stopName := GetStopById(currentStop)
+				tripType := GetTripTypeFromRouteId(trip.RouteId)
 				vehicle := CalTrainVehicle{
 					Id:            trip.Id,
 					ArrivalTime:   stop.Arrival,
 					DepartureTime: stop.Departure,
 					StopsLeft:     j,
 					CurrentStop:   stopName.Name,
-					TripType:      trip.RouteId,
+					TripType:      tripType,
 					Direction:     direction,
 				}
 				vehicles = append(vehicles, vehicle)

@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/ajt89/caltrain-chatbot/caltrain"
 	"github.com/bwmarrin/discordgo"
@@ -97,9 +98,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		trainCountMsg := fmt.Sprintf("%d trains found:\n", len(data.CalTrainVehicles))
 		trainInfoMsgs := []string{}
 		for _, t := range data.CalTrainVehicles {
+			currentTime := time.Now()
+			arrivalHumanTime := time.Unix(t.ArrivalTime, 0)
+			departureHumanTime := time.Unix(t.DepartureTime, 0)
+			timeLeft := arrivalHumanTime.Sub(currentTime)
 			trainInfoMsg := fmt.Sprintf(
-				"train id: %s\n arrival: %d\n departure: %d\n direction: %s\n stops left: %d\n current stop: %s\n train type: %s\n",
-				t.Id, t.ArrivalTime, t.DepartureTime, t.Direction, t.StopsLeft, t.CurrentStop, t.TripType)
+				"train id: %s\n arrival: %s\n departure: %s\n direction: %s\n stops left: %d\n time left: %v\n current stop: %s\n train type: %s\n",
+				t.Id, arrivalHumanTime.Local().Format(time.Kitchen), departureHumanTime.Local().Format(time.Kitchen), t.Direction, t.StopsLeft, timeLeft.Truncate(time.Second), t.CurrentStop, t.TripType)
 			trainInfoMsgs = append(trainInfoMsgs, trainInfoMsg)
 		}
 		trainInfoMsgsJoin := strings.Join(trainInfoMsgs, "\n")
