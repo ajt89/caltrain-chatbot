@@ -112,4 +112,31 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, message)
 		log.Printf("Send message: %s\n", message)
 	}
+	// ntaq (Next to Arrive Query)
+	if commands[0] == "ntaq" {
+		stopName := strings.Join(commands[1:], " ")
+		log.Printf("stop: %s\n", stopName)
+
+		stop := caltrain.GetStopByName(stopName)
+		stopNId := stop.NorthboundId
+		stopSId := stop.SouthboundId
+
+		data := caltrain.QueryCalTrainStop(stopNId, stopSId)
+		trainCountMsg := fmt.Sprintf("%d trains found:\n", len(data.CalTrainVehicles))
+		trainInfoMsgs := []string{}
+		for _, t := range data.CalTrainVehicles {
+			currentTime := time.Now()
+			arrivalHumanTime := time.Unix(t.ArrivalTime, 0)
+			departureHumanTime := time.Unix(t.DepartureTime, 0)
+			timeLeft := arrivalHumanTime.Sub(currentTime)
+			trainInfoMsg := fmt.Sprintf(
+				"train id: %s\n arrival: %s\n departure: %s\n direction: %s\n stops left: %d\n time left: %v\n current stop: %s\n train type: %s\n",
+				t.Id, arrivalHumanTime.Local().Format(time.Kitchen), departureHumanTime.Local().Format(time.Kitchen), t.Direction, t.StopsLeft, timeLeft.Truncate(time.Second), t.CurrentStop, t.TripType)
+			trainInfoMsgs = append(trainInfoMsgs, trainInfoMsg)
+		}
+		trainInfoMsgsJoin := strings.Join(trainInfoMsgs, "\n")
+		message := fmt.Sprintf("%s\n%s", trainCountMsg, trainInfoMsgsJoin)
+		s.ChannelMessageSend(m.ChannelID, message)
+		log.Printf("Send message: %s\n", message)
+	}
 }
