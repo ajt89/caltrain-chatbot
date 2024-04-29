@@ -36,6 +36,48 @@ func GetRealTime() RealTimeStatus {
 
 }
 
+func ParseAndSaveRealTime() CalTrainTripStatus {
+	status := CalTrainTripStatus{}
+	setupDB()
+	RealTimeStatus := GetRealTime()
+	if RealTimeStatus.Status == 1 {
+		status.ErrorMsg = RealTimeStatus.ErrorMsg
+		status.Status = RealTimeStatus.Status
+		return status
+	}
+
+	for _, entity := range RealTimeStatus.RealTime.Entities {
+		tripId := entity.Id
+		insertIntoTripsTable(tripId, entity.TripUpdate.Trip.RouteId, entity.TripUpdate.Trip.DirectionId)
+		for _, stopTimeUpdate := range entity.TripUpdate.StopTimeUpdate {
+			stopIdInt, err := strconv.Atoi(stopTimeUpdate.Id)
+			if err != nil {
+				status.ErrorMsg = err.Error()
+				status.Status = 1
+				return status
+			}
+			insertIntoTripStopsTable(tripId, stopIdInt, stopTimeUpdate.Arrival.Time, stopTimeUpdate.Departure.Time)
+		}
+	}
+	return status
+}
+
+func QueryCalTrainStop(originN int, originS int) CalTrainVehicleStatus {
+	status := CalTrainVehicleStatus{}
+	CalTrainTripStatus := ParseAndSaveRealTime()
+	if CalTrainTripStatus.Status == 1 {
+		status.ErrorMsg = CalTrainTripStatus.ErrorMsg
+		status.Status = CalTrainTripStatus.Status
+		return status
+	}
+
+	vehicles := getTrainsArrivingAtStops(originN, originS)
+
+	status.CalTrainVehicles = vehicles
+
+	return status
+}
+
 func ParseRealTime() CalTrainTripStatus {
 	status := CalTrainTripStatus{}
 	realTimeStatus := GetRealTime()
